@@ -21,6 +21,7 @@ object Version {
   val scala       = "2.11.12"
   val hadoop      = "2.8.0"
   val spark       = "2.3.1"
+  val geotools    = "17.1"
   val gdal        = "2.3.0"
 }
 
@@ -39,6 +40,9 @@ object Dependencies {
   val logging             = "com.typesafe.scala-logging" %% "scala-logging"            % "3.9.0"
   val scalatest           = "org.scalatest"              %% "scalatest"                % "3.0.5"
   val scalactic           = "org.scalactic"              %% "scalactic"                % "3.0.5"
+  val scalacheck          = "org.scalacheck"             %% "scalacheck"               % "1.14.0"
+  val squants             = "org.typelevel"              %% "squants"                  % "1.3.0"
+  val jts                 = "com.vividsolutions"          %  "jts-core"                % "1.14.0"
 
   val catsCore            = "org.typelevel"              %% "cats-core"                % "1.4.0"
   val catsEffect          = "org.typelevel"              %% "cats-effect"              % "1.0.0"
@@ -49,6 +53,4 @@ object Dependencies {
   val sparkSQL            = "org.apache.spark"           %% "spark-sql"                % Version.spark
   val hadoopClient        = "org.apache.hadoop"           % "hadoop-client"            % Version.hadoop
   val gdal                = "org.gdal"                    % "gdal"                     % Version.gdal
-
-  val squants = "org.typelevel" %% "squants" % "1.3.0"
 }

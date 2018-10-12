@@ -33,6 +33,7 @@ class LayoutTileSource(val source: RasterSource, val layout: LayoutDefinition) {
   def sourceRowOffset: Long = ((layout.extent.ymax - source.extent.ymax) / layout.cellheight).toLong
 
   /** Generate RasterRef for key */
+  // TODO: this should be an Option[RasterRef] because why would we ever return something we know doesn't exist?
   def rasterRef(key: SpatialKey): RasterRef = {
     val col = key.col.toLong
     val row = key.row.toLong

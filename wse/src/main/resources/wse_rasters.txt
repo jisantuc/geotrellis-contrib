@@ -1,0 +1,6 @@
+s3://geotrellis-test/wsegrids/B1_R042_wse.tif
+s3://geotrellis-test/wsegrids/B2_R042_wse.tif
+s3://geotrellis-test/wsegrids/B3_R042_wse.tif
+s3://geotrellis-test/wsegrids/B4_R042_WSE.tif
+s3://geotrellis-test/wsegrids/B5_R042_WSE.tif
+s3://geotrellis-test/wsegrids/Base_R042_wse.tif

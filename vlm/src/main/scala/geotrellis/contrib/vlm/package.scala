@@ -22,6 +22,7 @@ import geotrellis.spark.io.s3.util.S3RangeReader
 import geotrellis.spark.io.s3.AmazonS3Client
 import org.apache.http.client.utils.URLEncodedUtils
 import com.amazonaws.services.s3.{AmazonS3ClientBuilder, AmazonS3URI}
+import com.amazonaws.auth.{BasicAWSCredentials, AWSStaticCredentialsProvider}
 
 import java.nio.file.Paths
 import java.net.{URI, URL}
@@ -34,8 +35,8 @@ package object vlm {
 
     val rr =  javaURI.getScheme match {
       case null =>
-        FileRangeReader(Paths.get(javaURI.toString).toFile)      
-      
+        FileRangeReader(Paths.get(javaURI.toString).toFile)
+
       case "file" =>
         FileRangeReader(Paths.get(javaURI).toFile)
 
@@ -45,10 +46,20 @@ package object vlm {
       case "http" | "https" =>
         new HttpRangeReader(new URL(uri), false)
 
-      case "s3" =>
+      case "s3" if (javaURI.getUserInfo == null) =>
         val s3Uri = new AmazonS3URI(java.net.URLDecoder.decode(uri, "UTF-8"))
-        val s3Client = new AmazonS3Client(AmazonS3ClientBuilder.defaultClient())
-        S3RangeReader(s3Uri.getBucket, s3Uri.getKey, s3Client)
+        val client = AmazonS3ClientBuilder.defaultClient()
+        S3RangeReader(s3Uri.getBucket, s3Uri.getKey, new AmazonS3Client(client))
+
+      case "s3" if javaURI.getUserInfo.contains(":") =>
+        val Array(user, pass) = javaURI.getUserInfo.split(':')
+        val credentials = new BasicAWSCredentials(user, pass)
+        val provider = new AWSStaticCredentialsProvider(credentials)
+        val client = AmazonS3ClientBuilder.standard().withCredentials(provider).build()
+        // drop everything until bucket name
+        val rebuilt = "s3://" + javaURI.getSchemeSpecificPart.replaceFirst(".*@","")
+        val s3Uri = new AmazonS3URI(java.net.URLDecoder.decode(rebuilt, "UTF-8"))
+          S3RangeReader(s3Uri.getBucket, s3Uri.getKey, new AmazonS3Client(client))
 
       case scheme =>
         throw new IllegalArgumentException(s"Unable to read scheme $scheme at $uri")
