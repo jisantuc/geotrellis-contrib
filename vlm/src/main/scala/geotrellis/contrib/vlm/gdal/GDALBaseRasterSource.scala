@@ -22,11 +22,12 @@ import geotrellis.raster._
 import geotrellis.raster.reproject.Reproject
 import geotrellis.raster.resample.ResampleMethod
 import geotrellis.vector._
+import com.typesafe.scalalogging.LazyLogging
 
 import org.gdal.gdal.{Dataset, gdal}
 import org.gdal.osr.SpatialReference
 
-trait GDALBaseRasterSource extends RasterSource {
+trait GDALBaseRasterSource extends RasterSource with LazyLogging {
   // options from previous transformation steps
   val baseWarpList: List[GDALWarpOptions]
   // current transformation options
@@ -128,11 +129,17 @@ trait GDALBaseRasterSource extends RasterSource {
     GDALResampleRasterSource(uri, resampleGrid, method)
 
   def read(extent: Extent, bands: Seq[Int]): Option[Raster[MultibandTile]] = {
+    logger.trace(s"GDAL read URI: $uri")
+    logger.trace(s"GDAL read warp options: $warpOptions")
+    logger.trace(s"GDAL read extent: $extent")
     val bounds = rasterExtent.gridBoundsFor(extent, clamp = false)
     read(bounds, bands)
   }
 
   def read(bounds: GridBounds, bands: Seq[Int]): Option[Raster[MultibandTile]] = {
+    logger.trace(s"GDAL read URI: $uri")
+    logger.trace(s"GDAL read warp options: $warpOptions")
+    logger.trace(s"GDAL read bounds: $bounds")
     val it = readBounds(List(bounds).flatMap(_.intersection(this)), bands)
     if (it.hasNext) Some(it.next) else None
   }

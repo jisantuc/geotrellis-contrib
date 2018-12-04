@@ -17,8 +17,11 @@
 package geotrellis.contrib.vlm.gdal
 
 import geotrellis.contrib.vlm._
+
+import cats.effect.IO
+import cats.implicits._
 import geotrellis.raster._
-import geotrellis.raster.io.geotiff.MultibandGeoTiff
+import geotrellis.raster.io.geotiff.{MultibandGeoTiff, GeoTiffOptions}
 import geotrellis.raster.io.geotiff.reader.GeoTiffReader
 import geotrellis.raster.resample._
 import geotrellis.raster.testkit._
@@ -28,6 +31,8 @@ import geotrellis.spark.tiling._
 import geotrellis.util._
 
 import org.scalatest._
+import scala.concurrent.ExecutionContext
+
 
 class GDALRasterSourceSpec extends FunSpec with RasterMatchers with BetterRasterMatchers with GivenWhenThen {
   val url = Resource.path("img/aspect-tiled.tif")
@@ -139,6 +144,26 @@ class GDALRasterSourceSpec extends FunSpec with RasterMatchers with BetterRaster
           }
         }
       }
+    }
+  }
+
+  describe("Reading concurrency") {
+    it("should be able to correctly read multiple windows concurrently") {
+      implicit val ctx = IO.contextShift(ExecutionContext.global)
+
+      val fst = IO {
+        val tif = source.reproject(geotrellis.proj4.WebMercator).read(Extent(630000.0, 215000.0, 635000.0, 228500.0))
+        MultibandGeoTiff(tif.get, geotrellis.proj4.WebMercator, GeoTiffOptions.DEFAULT).write("/tmp/first.tif")
+      }
+      val snd = IO {
+        val tif = source.reproject(geotrellis.proj4.WebMercator).read(Extent(635000.0, 215000.0, 640000.0, 228500.0))
+        MultibandGeoTiff(tif.get, geotrellis.proj4.WebMercator, GeoTiffOptions.DEFAULT).write("/tmp/second.tif")
+      }
+
+      val tif = source.reproject(geotrellis.proj4.WebMercator).read(source.extent)
+      MultibandGeoTiff(tif.get, geotrellis.proj4.WebMercator, GeoTiffOptions.DEFAULT).write("/tmp/ground.tif")
+      List(fst, snd).parSequence.void
+
     }
   }
 }
